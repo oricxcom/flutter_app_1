@@ -44,6 +44,7 @@ dependencies:
   image_picker: ^1.1.2
   firebase_core_platform_interface: ^5.3.0
   crypto: ^3.0.3
+  google_sign_in: ^6.1.6
   
 dev_dependencies:
   flutter_test:
@@ -97,3 +98,6 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+  assets:
+    - assets/images/

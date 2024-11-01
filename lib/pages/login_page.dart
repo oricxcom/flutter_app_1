@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'login_succ_view.dart';
 import 'dart:async';
 import 'fill_userinfo_view.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/gestures.dart';
+import '../legal/privacy_policy.dart';
+import '../legal/terms_of_service.dart';
 
 enum LoginPageStatus {
   pgChkEmail, // 检查邮箱阶段
@@ -20,11 +24,35 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _verificationCodeController = TextEditingController();
-  String? _errorText;
+  String? _emailError; // 邮箱错误提示
+  String? _passwordError; // 密码错误提示
+  String? _codeError; // 验证码错误提示
   LoginPageStatus _pageStatus = LoginPageStatus.pgChkEmail; // 初始状态
   Timer? _timer;
   int _countDown = 60;
   bool _showCountDown = false;
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId:
+        '444615335740-c4d2vj6nghj1tgg83bhe8vo53837t9qk.apps.googleusercontent.com',
+    scopes: [
+      'email',
+      'https://www.googleapis.com/auth/userinfo.profile',
+    ],
+  );
+
+  Future<void> _handleGoogleSignIn() async {
+    try {
+      final GoogleSignInAccount? account = await _googleSignIn.signIn();
+      if (account != null) {
+        // TODO: 处理Google登录成功后的逻辑
+        // 例如：调用后端API，获取token等
+        print('Google Sign in succeeded: ${account.email}');
+      }
+    } catch (error) {
+      print('Google Sign in failed: $error');
+      // TODO: 处理错误，显示错误提示等
+    }
+  }
 
   bool _isValidEmail(String email) {
     return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
@@ -36,7 +64,6 @@ class _LoginPageState extends State<LoginPage> {
         _pageStatus = LoginPageStatus.pgChkEmail;
         _passwordController.clear();
         _verificationCodeController.clear();
-        _errorText = null;
       });
     }
   }
@@ -67,17 +94,23 @@ class _LoginPageState extends State<LoginPage> {
       case LoginPageStatus.pgChkEmail:
         if (!_isValidEmail(email)) {
           setState(() {
-            _errorText = "Email is not reachable, please check and retry.";
+            _emailError = "Email is not reachable, please check and retry.";
+            _passwordError = null;
+            _codeError = null;
           });
         } else if (email == "new@qq.com") {
           setState(() {
-            _errorText = null;
+            _emailError = null;
+            _passwordError = null;
+            _codeError = null;
             _pageStatus = LoginPageStatus.pgChkValidateCode;
             _startCountDown();
           });
         } else {
           setState(() {
-            _errorText = null;
+            _emailError = null;
+            _passwordError = null;
+            _codeError = null;
             _pageStatus = LoginPageStatus.pgChkPwd;
           });
         }
@@ -86,14 +119,17 @@ class _LoginPageState extends State<LoginPage> {
       case LoginPageStatus.pgChkPwd:
         final password = _passwordController.text;
         if (password == '123456') {
-          Navigator.of(context).pushReplacement(
+          Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
               builder: (context) => LoginSuccView(),
             ),
+            (route) => false,
           );
         } else {
           setState(() {
-            _errorText = "Invalid password";
+            _emailError = null;
+            _passwordError = "Invalid password";
+            _codeError = null;
           });
         }
         break;
@@ -108,7 +144,9 @@ class _LoginPageState extends State<LoginPage> {
           );
         } else {
           setState(() {
-            _errorText = "Invalid verification code";
+            _emailError = null;
+            _passwordError = null;
+            _codeError = "Invalid verification code";
           });
         }
         break;
@@ -118,86 +156,285 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // 邮箱输入框（始终显示）
-              TextField(
-                controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.emailAddress,
-                onChanged: _onEmailChanged,
-              ),
-              const SizedBox(height: 20),
-
-              // 密码输入框（仅在检查密码阶段显示）
-              if (_pageStatus == LoginPageStatus.pgChkPwd) ...[
-                TextField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    border: OutlineInputBorder(),
+      appBar: AppBar(
+        title: const Text(
+          'MotionG APP',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: false,
+      ),
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20.0, 0.0, 20.0, 20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 4),
+                  Text(
+                    'Log in to your MotionG account',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                    textAlign: TextAlign.center,
                   ),
-                  obscureText: true,
-                ),
-                const SizedBox(height: 20),
-              ],
+                  const SizedBox(height: 16),
 
-              // 验证码输入框（仅在验证码阶段显示）
-              if (_pageStatus == LoginPageStatus.pgChkValidateCode) ...[
-                TextField(
-                  controller: _verificationCodeController,
-                  decoration: const InputDecoration(
-                    labelText: 'Verification Code',
-                    border: OutlineInputBorder(),
-                    suffixIcon: Icon(Icons.email),
-                  ),
-                  keyboardType: TextInputType.number,
-                  maxLength: 6,
-                ),
-                if (_showCountDown)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Text(
-                      'We sent a code to your inbox. Resend in ${_countDown}S',
-                      style: const TextStyle(color: Colors.grey),
+                  // Google登录按钮
+                  OutlinedButton(
+                    onPressed: _handleGoogleSignIn,
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      side: const BorderSide(color: Colors.grey),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset('assets/images/google_icon.png',
+                            height: 24),
+                        const SizedBox(width: 12),
+                        const Text('Continue with Google'),
+                      ],
                     ),
                   ),
-                const SizedBox(height: 20),
-              ],
+                  const SizedBox(height: 16),
 
-              ElevatedButton(
-                onPressed: _onContinuePressed,
-                child: const Text('Continue'),
-              ),
+                  // 邮箱显示/输入
+                  _buildEmailSection(),
 
-              if (_errorText != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 10),
-                  child: Text(
-                    _errorText!,
-                    style: const TextStyle(color: Colors.red),
+                  const SizedBox(height: 16),
+
+                  // 密码或验证码输入
+                  if (_pageStatus == LoginPageStatus.pgChkPwd)
+                    _buildPasswordSection(),
+
+                  if (_pageStatus == LoginPageStatus.pgChkValidateCode)
+                    _buildVerificationCodeSection(),
+
+                  const SizedBox(height: 16),
+
+                  // Continue 按钮
+                  SizedBox(
+                    width: double.infinity,
+                    height: 44,
+                    child: ElevatedButton(
+                      onPressed: _onContinuePressed,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2E3440),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Continue',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-            ],
+
+                  const SizedBox(height: 16),
+
+                  // Terms and Conditions
+                  _buildTermsAndConditions(),
+                ],
+              ),
+            ),
           ),
         ),
       ),
     );
   }
 
+  // 修改输入框部分的内边距
+  Widget _buildEmailSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Email',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 4),
+        TextField(
+          controller: _emailController,
+          decoration: InputDecoration(
+            hintText: 'Enter your email address',
+            hintStyle: const TextStyle(
+              color: Colors.grey,
+              fontSize: 16,
+            ),
+            errorText: _emailError,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          ),
+          keyboardType: TextInputType.emailAddress,
+          onChanged: _onEmailChanged,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPasswordSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Password',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _passwordController,
+          decoration: InputDecoration(
+            hintText: 'Enter your password',
+            hintStyle: const TextStyle(
+              color: Colors.grey,
+              fontSize: 16,
+            ),
+            errorText: _passwordError,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          ),
+          obscureText: true,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVerificationCodeSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Verification Code',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _verificationCodeController,
+                decoration: InputDecoration(
+                  hintText: 'Enter verification code',
+                  hintStyle: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 16,
+                  ),
+                  errorText: _codeError,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+            ),
+            if (_showCountDown)
+              Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: Text('${_countDown}s'),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTermsAndConditions() {
+    return Text.rich(
+      TextSpan(
+        text: 'By continuing, you agree to our ',
+        children: [
+          TextSpan(
+            text: 'Terms of Service',
+            style: const TextStyle(
+              color: Colors.blue,
+              decoration: TextDecoration.underline,
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TermsOfServicePage(),
+                  ),
+                );
+              },
+          ),
+          const TextSpan(text: ' and '),
+          TextSpan(
+            text: 'Privacy Policy',
+            style: const TextStyle(
+              color: Colors.blue,
+              decoration: TextDecoration.underline,
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PrivacyPolicyPage(),
+                  ),
+                );
+              },
+          ),
+        ],
+      ),
+      textAlign: TextAlign.center,
+      style: const TextStyle(fontSize: 12),
+    );
+  }
+
   @override
   void dispose() {
-    _timer?.cancel();
+    // 清理控制
     _emailController.dispose();
     _passwordController.dispose();
     _verificationCodeController.dispose();
+
+    // 清理定时器
+    _timer?.cancel();
+
+    // 清理状态
+    _emailError = null;
+    _passwordError = null;
+    _codeError = null;
+    _pageStatus = LoginPageStatus.pgChkEmail;
+    _showCountDown = false;
+    _countDown = 60;
+
     super.dispose();
   }
 }
