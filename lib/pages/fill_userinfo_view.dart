@@ -17,6 +17,7 @@ class _FillUserInfoViewState extends State<FillUserInfoView> {
   final _picker = ImagePicker();
   String? _nicknameError;
   String? _passwordError;
+
   bool _isPasswordVisible = false;
   bool _isLengthValid = false;
   bool _hasRequiredTypes = false;
@@ -38,7 +39,9 @@ class _FillUserInfoViewState extends State<FillUserInfoView> {
 
   void _checkPassword(String password) {
     setState(() {
+      _passwordError = null;
       _isLengthValid = password.length >= 8 && password.length <= 32;
+
       bool hasDigit = password.contains(RegExp(r'[0-9]'));
       bool hasUpperCase = password.contains(RegExp(r'[A-Z]'));
       bool hasLowerCase = password.contains(RegExp(r'[a-z]'));
@@ -77,7 +80,7 @@ class _FillUserInfoViewState extends State<FillUserInfoView> {
         _passwordError = 'Please set a password';
       });
       hasError = true;
-    } else if (!_isPasswordValid(password)) {
+    } else if (!(_isLengthValid && _hasRequiredTypes)) {
       setState(() {
         _passwordError = 'Password does not meet the requirements';
       });
@@ -93,10 +96,6 @@ class _FillUserInfoViewState extends State<FillUserInfoView> {
         builder: (context) => LoginSuccView(),
       ),
     );
-  }
-
-  bool _isPasswordValid(String password) {
-    return _isLengthValid && _hasRequiredTypes;
   }
 
   @override
@@ -140,140 +139,63 @@ class _FillUserInfoViewState extends State<FillUserInfoView> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  Center(
+                    child: GestureDetector(
+                      onTap: _pickImage,
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Account info',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                // Avatar 行
-                                InkWell(
-                                  onTap: _pickImage,
-                                  child: Row(
-                                    children: [
-                                      const Text(
-                                        'Avatar',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                      const Spacer(),
-                                      CircleAvatar(
-                                        radius: 20,
-                                        backgroundImage: _imageFile != null
-                                            ? FileImage(_imageFile!)
-                                            : const AssetImage(
-                                                    'assets/images/tx1.png')
-                                                as ImageProvider,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      const Text(
-                                        'Change photo',
-                                        style: TextStyle(
-                                          color: Colors.grey,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                      const Icon(
-                                        Icons.chevron_right,
-                                        color: Colors.grey,
-                                        size: 20,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                // Email 行
-                                Row(
-                                  children: [
-                                    const Text(
-                                      'Email',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    Text(
-                                      'demo@MotionG.ai',
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                // Nickname 行
-                                InkWell(
-                                  onTap: () {},
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          const Text(
-                                            'Nickname',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                          const Spacer(),
-                                          Text(
-                                            _nicknameController.text.isEmpty
-                                                ? 'Set your nickname'
-                                                : _nicknameController.text,
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: _nicknameController
-                                                      .text.isEmpty
-                                                  ? Colors.grey
-                                                  : Colors.black87,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      if (_nicknameError != null)
-                                        Padding(
-                                          padding:
-                                              const EdgeInsets.only(top: 4),
-                                          child: Text(
-                                            _nicknameError!,
-                                            style: const TextStyle(
-                                              color: Colors.red,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                          CircleAvatar(
+                            radius: 40,
+                            backgroundImage: _imageFile != null
+                                ? FileImage(_imageFile!)
+                                : const AssetImage('assets/images/tx1.png')
+                                    as ImageProvider,
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Add a photo',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 14,
                             ),
                           ),
                         ],
                       ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Nickname',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'This is your default display name',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  TextField(
+                    controller: _nicknameController,
+                    decoration: InputDecoration(
+                      hintText: 'A name you want others to call you',
+                      hintStyle: const TextStyle(
+                        color: Colors.grey,
+                        fontSize: 16,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      errorText: _nicknameError,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 12),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -301,8 +223,8 @@ class _FillUserInfoViewState extends State<FillUserInfoView> {
                       filled: true,
                       fillColor: Colors.white,
                       errorText: _passwordError,
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 12),
                       suffixIcon: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [

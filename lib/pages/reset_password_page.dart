@@ -183,7 +183,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
 
                   // 验证码
                   const Text(
-                    'Verify code for reset password',
+                    'Verification code',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
@@ -198,7 +198,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                       });
                     },
                     decoration: InputDecoration(
-                      hintText: 'Enter verification code',
+                      hintText: 'Enter code from your email',
                       hintStyle: const TextStyle(
                         color: Colors.grey,
                         fontSize: 16,

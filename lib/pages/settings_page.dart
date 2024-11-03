@@ -68,7 +68,10 @@ class _SettingsPageState extends State<SettingsPage> {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Edit Nickname'),
+          title: const Text(
+            'Edit Nickname',
+            style: TextStyle(fontSize: 16),
+          ),
           contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
           content: SingleChildScrollView(
             child: SizedBox(
@@ -80,7 +83,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   const Text(
                     'This is your public display name',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 12,
                       color: Colors.grey,
                     ),
                   ),
@@ -94,7 +97,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       hintText: 'A name you want others to call you',
                       hintStyle: const TextStyle(
                         color: Colors.grey,
-                        fontSize: 16,
+                        fontSize: 14,
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -248,26 +251,6 @@ class _SettingsPageState extends State<SettingsPage> {
                                 ),
                               ),
                               const SizedBox(height: 12),
-                              Row(
-                                children: [
-                                  const Text(
-                                    'Email',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  Text(
-                                    'demo@MotionG.ai',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
                               InkWell(
                                 onTap: _showEditNicknameDialog,
                                 child: Row(
@@ -298,6 +281,26 @@ class _SettingsPageState extends State<SettingsPage> {
                                     ),
                                   ],
                                 ),
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  const Text(
+                                    'Email (login)',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    'demo@MotionG.ai',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),

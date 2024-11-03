@@ -34,24 +34,43 @@ class _LoginPageState extends State<LoginPage> {
   bool _showCountDown = false;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     clientId:
-        '444615335740-c4d2vj6nghj1tgg83bhe8vo53837t9qk.apps.googleusercontent.com',
+        '444615335740-rg44p8cl73sehcji1steok8oum1frafm.apps.googleusercontent.com',
     scopes: [
       'email',
       'https://www.googleapis.com/auth/userinfo.profile',
     ],
   );
+  bool _isPasswordVisible = false;
 
   Future<void> _handleGoogleSignIn() async {
     try {
       final GoogleSignInAccount? account = await _googleSignIn.signIn();
       if (account != null) {
-        // TODO: 处理Google登录成功后的逻辑
-        // 例如：调用后端API，获取token等
+        if (account.email == "need_fill_user_info@qq.com") {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const FillUserInfoView(),
+            ),
+          );
+        } else {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => LoginSuccView(),
+            ),
+            (route) => false,
+          );
+        }
         print('Google Sign in succeeded: ${account.email}');
       }
     } catch (error) {
       print('Google Sign in failed: $error');
-      // TODO: 处理错误，显示错误提示等
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Google Sign in failed. Please try again.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
     }
   }
 
@@ -205,9 +224,10 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 4),
                   Text(
                     'Log in to your MotionG account',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                    style: const TextStyle(
+                      fontSize: 18, // 可以根据需要调整这个值
+                      fontWeight: FontWeight.bold,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
@@ -337,6 +357,7 @@ class _LoginPageState extends State<LoginPage> {
         const SizedBox(height: 8),
         TextField(
           controller: _passwordController,
+          obscureText: !_isPasswordVisible,
           decoration: InputDecoration(
             hintText: 'Enter your password',
             hintStyle: const TextStyle(
@@ -346,14 +367,44 @@ class _LoginPageState extends State<LoginPage> {
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
             ),
+            filled: true,
+            fillColor: Colors.white,
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            suffixIcon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: Icon(
+                    _isPasswordVisible
+                        ? Icons.visibility_off
+                        : Icons.visibility,
+                    color: Colors.grey,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordVisible = !_isPasswordVisible;
+                    });
+                  },
+                ),
+                if (_passwordController.text.isNotEmpty)
+                  IconButton(
+                    icon: const Icon(
+                      Icons.close,
+                      color: Colors.grey,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _passwordController.clear();
+                      });
+                    },
+                  ),
+              ],
+            ),
           ),
-          obscureText: true,
           onChanged: _onPasswordChanged,
         ),
         const SizedBox(height: 8),
-        // 错误信息和忘记密码链接放在这里
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -411,7 +462,7 @@ class _LoginPageState extends State<LoginPage> {
               child: TextField(
                 controller: _verificationCodeController,
                 decoration: InputDecoration(
-                  hintText: 'Enter verification code',
+                  hintText: 'Enter code from email',
                   hintStyle: const TextStyle(
                     color: Colors.grey,
                     fontSize: 16,
@@ -521,7 +572,7 @@ class _LoginPageState extends State<LoginPage> {
     // 清理定时器
     _timer?.cancel();
 
-    // 清理状态
+    // 清��状态
     _emailError = null;
     _passwordError = null;
     _codeError = null;

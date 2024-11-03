@@ -1,4 +1,8 @@
-# flutter_app_1
+# ai.motiong.vexpert
+# java version 20
+# flutter version 3.24.4
+# gradle distributionUrl=https\://services.gradle.org/distributions/gradle-8.2-all.zip
+# com.android.tools.build:gradle:8.1.0
 
 A new Flutter project.
 
