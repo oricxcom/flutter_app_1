@@ -6,10 +6,11 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/gestures.dart';
 import '../legal/privacy_policy.dart';
 import '../legal/terms_of_service.dart';
+import './reset_password_page.dart';
 
 enum LoginPageStatus {
   pgChkEmail, // 检查邮箱阶段
-  pgChkPwd, // 检查密码阶段
+  pgChkPwd, // 检查密码阶段Y
   pgChkValidateCode // 检查验证码阶段
 }
 
@@ -59,6 +60,10 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _onEmailChanged(String value) {
+    setState(() {
+      _emailError = null;
+    });
+
     if (_pageStatus != LoginPageStatus.pgChkEmail) {
       setState(() {
         _pageStatus = LoginPageStatus.pgChkEmail;
@@ -66,6 +71,18 @@ class _LoginPageState extends State<LoginPage> {
         _verificationCodeController.clear();
       });
     }
+  }
+
+  void _onPasswordChanged(String value) {
+    setState(() {
+      _passwordError = null;
+    });
+  }
+
+  void _onVerificationCodeChanged(String value) {
+    setState(() {
+      _codeError = null;
+    });
   }
 
   void _startCountDown() {
@@ -94,7 +111,8 @@ class _LoginPageState extends State<LoginPage> {
       case LoginPageStatus.pgChkEmail:
         if (!_isValidEmail(email)) {
           setState(() {
-            _emailError = "Email is not reachable, please check and retry.";
+            _emailError =
+                "We could not reach the email address you provided. Please try again with a different email.";
             _passwordError = null;
             _codeError = null;
           });
@@ -155,6 +173,12 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    // 根据页面状态确定按钮文本
+    String buttonText = 'Continue';
+    if (_pageStatus == LoginPageStatus.pgChkPwd) {
+      buttonText = 'Continue with password';
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -236,9 +260,9 @@ class _LoginPageState extends State<LoginPage> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: const Text(
-                        'Continue',
-                        style: TextStyle(
+                      child: Text(
+                        buttonText,
+                        style: const TextStyle(
                           fontSize: 16,
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -272,16 +296,20 @@ class _LoginPageState extends State<LoginPage> {
             fontWeight: FontWeight.w500,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 8),
         TextField(
           controller: _emailController,
           decoration: InputDecoration(
-            hintText: 'Enter your email address',
+            hintText: 'Enter your email',
             hintStyle: const TextStyle(
               color: Colors.grey,
               fontSize: 16,
             ),
             errorText: _emailError,
+            errorMaxLines: 2, // 允许错误信息最多显示2行
+            errorStyle: const TextStyle(
+              height: 1.2, // 调整行高
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
             ),
@@ -315,7 +343,6 @@ class _LoginPageState extends State<LoginPage> {
               color: Colors.grey,
               fontSize: 16,
             ),
-            errorText: _passwordError,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
             ),
@@ -323,6 +350,44 @@ class _LoginPageState extends State<LoginPage> {
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           ),
           obscureText: true,
+          onChanged: _onPasswordChanged,
+        ),
+        const SizedBox(height: 8),
+        // 错误信息和忘记密码链接放在这里
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            if (_passwordError != null)
+              Text(
+                _passwordError!,
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontSize: 12,
+                ),
+              )
+            else
+              const SizedBox(),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ResetPasswordPage(
+                      email: _emailController.text,
+                    ),
+                  ),
+                );
+              },
+              child: const Text(
+                'Forgot your password?',
+                style: TextStyle(
+                  color: Colors.blue,
+                  fontSize: 14,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -359,12 +424,41 @@ class _LoginPageState extends State<LoginPage> {
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 ),
                 keyboardType: TextInputType.number,
+                onChanged: _onVerificationCodeChanged,
               ),
             ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Text(
+              'We sent a code to your inbox',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 14,
+              ),
+            ),
+            const Text(' · '),
             if (_showCountDown)
-              Padding(
-                padding: const EdgeInsets.only(left: 8),
-                child: Text('${_countDown}s'),
+              Text(
+                'Resend in ${_countDown}s',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 14,
+                ),
+              )
+            else
+              GestureDetector(
+                onTap: _startCountDown,
+                child: const Text(
+                  'Resend',
+                  style: TextStyle(
+                    color: Colors.blue,
+                    fontSize: 14,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
               ),
           ],
         ),

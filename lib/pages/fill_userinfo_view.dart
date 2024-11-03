@@ -17,6 +17,9 @@ class _FillUserInfoViewState extends State<FillUserInfoView> {
   final _picker = ImagePicker();
   String? _nicknameError;
   String? _passwordError;
+  bool _isPasswordVisible = false;
+  bool _isLengthValid = false;
+  bool _hasRequiredTypes = false;
 
   Future<void> _pickImage() async {
     try {
@@ -33,25 +36,22 @@ class _FillUserInfoViewState extends State<FillUserInfoView> {
     }
   }
 
-  bool _isPasswordValid(String password) {
-    // 1. 长度检查：8-32字符
-    if (password.length < 8 || password.length > 32) {
-      return false;
-    }
+  void _checkPassword(String password) {
+    setState(() {
+      _isLengthValid = password.length >= 8 && password.length <= 32;
+      bool hasDigit = password.contains(RegExp(r'[0-9]'));
+      bool hasUpperCase = password.contains(RegExp(r'[A-Z]'));
+      bool hasLowerCase = password.contains(RegExp(r'[a-z]'));
+      bool hasSpecialChar =
+          password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
 
-    // 2. 检查是否包含数字、大小写字母和特殊字符
-    bool hasDigit = password.contains(RegExp(r'[0-9]'));
-    bool hasUpperCase = password.contains(RegExp(r'[A-Z]'));
-    bool hasLowerCase = password.contains(RegExp(r'[a-z]'));
-    bool hasSpecialChar = password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
+      int typeCount = 0;
+      if (hasDigit) typeCount++;
+      if (hasUpperCase || hasLowerCase) typeCount++;
+      if (hasSpecialChar) typeCount++;
 
-    // 3. 至少包含两种类型
-    int typeCount = 0;
-    if (hasDigit) typeCount++;
-    if (hasUpperCase || hasLowerCase) typeCount++;
-    if (hasSpecialChar) typeCount++;
-
-    return typeCount >= 2;
+      _hasRequiredTypes = typeCount >= 2;
+    });
   }
 
   void _onContinue() {
@@ -95,6 +95,10 @@ class _FillUserInfoViewState extends State<FillUserInfoView> {
     );
   }
 
+  bool _isPasswordValid(String password) {
+    return _isLengthValid && _hasRequiredTypes;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -136,63 +140,140 @@ class _FillUserInfoViewState extends State<FillUserInfoView> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Center(
-                    child: GestureDetector(
-                      onTap: _pickImage,
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          CircleAvatar(
-                            radius: 40,
-                            backgroundImage: _imageFile != null
-                                ? FileImage(_imageFile!)
-                                : const AssetImage('assets/images/tx1.png')
-                                    as ImageProvider,
-                          ),
-                          const SizedBox(height: 4),
-                          const Text(
-                            'Add a photo',
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 14,
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Account info',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                // Avatar 行
+                                InkWell(
+                                  onTap: _pickImage,
+                                  child: Row(
+                                    children: [
+                                      const Text(
+                                        'Avatar',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      CircleAvatar(
+                                        radius: 20,
+                                        backgroundImage: _imageFile != null
+                                            ? FileImage(_imageFile!)
+                                            : const AssetImage(
+                                                    'assets/images/tx1.png')
+                                                as ImageProvider,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      const Text(
+                                        'Change photo',
+                                        style: TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      const Icon(
+                                        Icons.chevron_right,
+                                        color: Colors.grey,
+                                        size: 20,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                // Email 行
+                                Row(
+                                  children: [
+                                    const Text(
+                                      'Email',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    Text(
+                                      'demo@MotionG.ai',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                // Nickname 行
+                                InkWell(
+                                  onTap: () {},
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          const Text(
+                                            'Nickname',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                          const Spacer(),
+                                          Text(
+                                            _nicknameController.text.isEmpty
+                                                ? 'Set your nickname'
+                                                : _nicknameController.text,
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: _nicknameController
+                                                      .text.isEmpty
+                                                  ? Colors.grey
+                                                  : Colors.black87,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      if (_nicknameError != null)
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 4),
+                                          child: Text(
+                                            _nicknameError!,
+                                            style: const TextStyle(
+                                              color: Colors.red,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Nickname',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'This is your default display name',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  TextField(
-                    controller: _nicknameController,
-                    decoration: InputDecoration(
-                      hintText: 'A name you want others to call you',
-                      hintStyle: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 16,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      filled: true,
-                      fillColor: Colors.white,
-                      errorText: _nicknameError,
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -206,7 +287,8 @@ class _FillUserInfoViewState extends State<FillUserInfoView> {
                   const SizedBox(height: 4),
                   TextField(
                     controller: _passwordController,
-                    obscureText: true,
+                    obscureText: !_isPasswordVisible,
+                    onChanged: _checkPassword,
                     decoration: InputDecoration(
                       hintText: 'Enter your password',
                       hintStyle: const TextStyle(
@@ -221,23 +303,43 @@ class _FillUserInfoViewState extends State<FillUserInfoView> {
                       errorText: _passwordError,
                       contentPadding:
                           EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                      suffixIcon: const Row(
+                      suffixIcon: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.visibility_off),
-                          SizedBox(width: 8),
-                          Icon(Icons.close),
-                          SizedBox(width: 8),
+                          IconButton(
+                            icon: Icon(
+                              _isPasswordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _isPasswordVisible = !_isPasswordVisible;
+                              });
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () {
+                              setState(() {
+                                _passwordController.clear();
+                                _checkPassword('');
+                              });
+                            },
+                          ),
                         ],
                       ),
                     ),
                   ),
                   const SizedBox(height: 8),
-                  _buildPasswordRule('A string of 8 to 32 characters'),
                   _buildPasswordRule(
-                      'including digits, case, and special characters'),
+                      'A string of 8 to 32 characters', _isLengthValid),
                   _buildPasswordRule(
-                      'At least 2 or more types should be included'),
+                      'Including digits, case, and special characters',
+                      _hasRequiredTypes),
+                  _buildPasswordRule(
+                      'At least 2 or more types should be included',
+                      _hasRequiredTypes),
                   const SizedBox(height: 16),
                   Padding(
                     padding: const EdgeInsets.only(bottom: 20),
@@ -272,21 +374,21 @@ class _FillUserInfoViewState extends State<FillUserInfoView> {
     );
   }
 
-  Widget _buildPasswordRule(String text) {
+  Widget _buildPasswordRule(String text, bool isValid) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          const Icon(
-            Icons.check_circle,
-            color: Colors.green,
+          Icon(
+            isValid ? Icons.check_circle : Icons.radio_button_unchecked,
+            color: isValid ? Colors.green : Colors.grey,
             size: 16,
           ),
           const SizedBox(width: 8),
           Text(
             text,
-            style: const TextStyle(
-              color: Colors.green,
+            style: TextStyle(
+              color: isValid ? Colors.green : Colors.grey,
               fontSize: 14,
             ),
           ),
