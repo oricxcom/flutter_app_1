@@ -33,7 +33,7 @@ class _LoginPageState extends State<LoginPage> {
   int _countDown = 60;
   bool _showCountDown = false;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId:
+    serverClientId:
         '444615335740-rg44p8cl73sehcji1steok8oum1frafm.apps.googleusercontent.com',
     scopes: [
       'email',
@@ -572,7 +572,7 @@ class _LoginPageState extends State<LoginPage> {
     // 清理定时器
     _timer?.cancel();
 
-    // 清��状态
+    // 清状态
     _emailError = null;
     _passwordError = null;
     _codeError = null;

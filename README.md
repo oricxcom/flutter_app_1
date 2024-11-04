@@ -1,6 +1,7 @@
-# ai.motiong.vexpert
-# java 20.0.2 
-# flutter version 3.24.4
+# app name : MotionG
+# pkname : ai.motiong.vexpert
+# java version : 20.0.2 
+# flutter version : 3.24.4
 # gradle distributionUrl=https\://services.gradle.org/distributions/gradle-8.2-all.zip
 # com.android.tools.build:gradle:8.1.0
 
