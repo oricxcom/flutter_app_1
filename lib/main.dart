@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 import 'pages/login_page.dart';
-import 'package:webview_flutter_android/webview_flutter_android.dart';
+import 'config/app_config.dart';
 
-void main() {
-  WebViewPlatform.instance ??= AndroidWebViewPlatform();
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // 加载配置文件（可以根据不同环境选择不同配置文件）
+  await AppConfig.load('dev'); // 或 'prod'
+
   runApp(const MyApp());
 }
 
