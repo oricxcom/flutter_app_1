@@ -45,7 +45,8 @@ dependencies:
   firebase_core_platform_interface: ^5.3.0
   crypto: ^3.0.3
   google_sign_in: ^6.1.6
-  
+  yaml: ^3.1.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -102,6 +103,8 @@ flutter:
 
   assets:
     - assets/images/
+    - config/dev.yaml
+    - config/prod.yaml
 
 flutter_launcher_icons:
   android: true

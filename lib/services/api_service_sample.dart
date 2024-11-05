@@ -6,10 +6,12 @@ class ApiService {
 
   Future<void> makeApiCall() async {
     // 使用配置参数
-    final response = await http.get(
-      Uri.parse('$baseUrl/endpoint'),
-      headers: {'Authorization': 'Bearer $apiKey'},
-    );
+    // final response = await http.get(
+    //   Uri.parse('$baseUrl/endpoint'),
+    //   headers: {'Authorization': 'Bearer $apiKey'},
+    // );
     // ... 处理响应
+
+    
   }
 }

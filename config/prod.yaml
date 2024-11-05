@@ -1,1 +1,6 @@
- 
+api:
+  base_url: "https://api.example.com"
+  timeout: 30000
+auth:
+  google_client_id: "your-prod-google-client-id"
+  api_key: "your-prod-api-key" 
